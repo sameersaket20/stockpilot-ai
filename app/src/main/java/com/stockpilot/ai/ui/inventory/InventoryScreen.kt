@@ -39,11 +39,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.stockpilot.ai.data.local.ProductEntity
 import com.stockpilot.ai.data.local.StockStatus
 import com.stockpilot.ai.data.repository.InventoryFilter
-import com.stockpilot.ai.di.LocalAppContainer
 import com.stockpilot.ai.ui.components.OfflinePill
 import com.stockpilot.ai.ui.components.StatCard
 import com.stockpilot.ai.ui.theme.StockPilotInStock
@@ -58,9 +57,7 @@ import com.stockpilot.ai.ui.theme.StockPilotTeal
 fun InventoryRoute(
     onOpenAssistant: () -> Unit,
     onOpenSettings: () -> Unit,
-    viewModel: InventoryViewModel = viewModel(
-        factory = InventoryViewModelFactory(LocalAppContainer.current.inventoryRepository),
-    ),
+    viewModel: InventoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.screenState.collectAsStateWithLifecycle()
     InventoryScreen(

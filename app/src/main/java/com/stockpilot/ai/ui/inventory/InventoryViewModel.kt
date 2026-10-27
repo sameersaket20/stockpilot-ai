@@ -2,6 +2,8 @@ package com.stockpilot.ai.ui.inventory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.stockpilot.ai.data.local.ProductEntity
 import com.stockpilot.ai.data.repository.InventoryFilter
 import com.stockpilot.ai.data.repository.InventoryRepository
@@ -26,7 +28,8 @@ data class InventoryUiState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class InventoryViewModel(
+@HiltViewModel
+class InventoryViewModel @Inject constructor(
     private val repository: InventoryRepository,
 ) : ViewModel() {
     private val searchQuery = MutableStateFlow("")
@@ -61,10 +64,6 @@ class InventoryViewModel(
             isSaving = saving,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), InventoryUiState())
-
-    init {
-        viewModelScope.launch { repository.ensureSeeded() }
-    }
 
     fun onSearchChange(value: String) {
         searchQuery.value = value

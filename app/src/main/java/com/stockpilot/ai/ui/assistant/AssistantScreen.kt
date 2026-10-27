@@ -50,8 +50,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.stockpilot.ai.di.LocalAppContainer
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.stockpilot.ai.ui.components.DemoModeBanner
 import com.stockpilot.ai.ui.theme.StockPilotNavy
 import com.stockpilot.ai.ui.theme.StockPilotSurface
@@ -60,18 +59,9 @@ import com.stockpilot.ai.ui.theme.StockPilotTeal
 
 @Composable
 fun AssistantRoute(onBack: () -> Unit) {
-    val container = LocalAppContainer.current
-    val viewModel: AssistantViewModel = viewModel(
-        factory = AssistantViewModelFactory(
-            container.assistantOrchestrator,
-            container.speechEngine,
-            container.audioRecorder,
-            container.ttsManager,
-        ),
-    )
+    val viewModel: AssistantViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val hasMicPermission = container.audioRecorder.hasMicPermission()
-    AssistantScreen(state, viewModel, onBack, hasMicPermission)
+    AssistantScreen(state, viewModel, onBack, viewModel.hasMicPermission())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

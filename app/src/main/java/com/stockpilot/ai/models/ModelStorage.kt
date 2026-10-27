@@ -14,11 +14,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private val Context.modelPrefs: DataStore<Preferences> by preferencesDataStore("model_prefs")
 
-class ModelStorage(private val context: Context) {
+@Singleton
+class ModelStorage @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
     private val mutex = Mutex()
 
     private val gemmaStatus = MutableStateFlow(ModelStatus.NotInstalled)

@@ -4,8 +4,11 @@ import com.stockpilot.ai.domain.inventory.InventoryCommandExecutor
 import com.stockpilot.ai.domain.inventory.InventoryResult
 import com.stockpilot.ai.inference.DemoInferenceEngine
 import com.stockpilot.ai.inference.IntentResult
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AssistantOrchestrator(
+@Singleton
+class AssistantOrchestrator @Inject constructor(
     private val inferenceEngine: DemoInferenceEngine,
     private val commandExecutor: InventoryCommandExecutor,
 ) {

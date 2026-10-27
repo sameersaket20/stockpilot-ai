@@ -34,8 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.stockpilot.ai.di.LocalAppContainer
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.stockpilot.ai.models.ModelType
 import com.stockpilot.ai.models.ModelUiState
 import com.stockpilot.ai.ui.components.DemoModeBanner
@@ -47,10 +46,7 @@ import java.util.Date
 
 @Composable
 fun ModelManagerRoute(onBack: () -> Unit) {
-    val container = LocalAppContainer.current
-    val viewModel: ModelManagerViewModel = viewModel(
-        factory = ModelManagerViewModelFactory(container.modelStorage, container.modelImportManager),
-    )
+    val viewModel: ModelManagerViewModel = hiltViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var pendingType by remember { mutableStateOf<ModelType?>(null) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

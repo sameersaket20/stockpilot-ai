@@ -3,6 +3,8 @@ package com.stockpilot.ai.ui.models
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.stockpilot.ai.inference.ModelStatus
 import com.stockpilot.ai.models.ModelImportManager
 import com.stockpilot.ai.models.ModelType
@@ -22,7 +24,8 @@ data class ModelManagerScreenState(
     val errorMessage: String? = null,
 )
 
-class ModelManagerViewModel(
+@HiltViewModel
+class ModelManagerViewModel @Inject constructor(
     private val storage: ModelStorage,
     private val importManager: ModelImportManager,
 ) : ViewModel() {

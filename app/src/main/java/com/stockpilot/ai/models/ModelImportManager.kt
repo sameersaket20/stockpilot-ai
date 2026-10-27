@@ -10,10 +10,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import java.io.File
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.FileOutputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ModelImportManager(
-    private val context: Context,
+@Singleton
+class ModelImportManager @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val storage: ModelStorage,
 ) {
     private val _importProgress = MutableStateFlow<Pair<ModelType, Float>?>(null)

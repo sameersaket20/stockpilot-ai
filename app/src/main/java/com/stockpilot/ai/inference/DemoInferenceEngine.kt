@@ -4,8 +4,14 @@ import com.stockpilot.ai.domain.assistant.ConversationContext
 import com.stockpilot.ai.domain.assistant.DemoIntentParser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class DemoInferenceEngine : InferenceEngine {
+/**
+ * Phase 1 placeholder — not on-device Gemma inference. Demo mode only.
+ */
+@Singleton
+class DemoInferenceEngine @Inject constructor() : InferenceEngine {
     private val _status = MutableStateFlow(ModelStatus.NotInstalled)
     override val status: StateFlow<ModelStatus> = _status
 

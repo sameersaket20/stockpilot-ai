@@ -5,8 +5,11 @@ import com.stockpilot.ai.models.ModelType
 import com.stockpilot.ai.models.ModelStorage
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UninstalledSpeechEngine(
+@Singleton
+class UninstalledSpeechEngine @Inject constructor(
     private val modelStorage: ModelStorage,
 ) : SpeechEngine {
     override val status: StateFlow<ModelStatus> = modelStorage.status(ModelType.WHISPER)

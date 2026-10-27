@@ -9,7 +9,9 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import javax.inject.Inject
 
 sealed class RecordingState {
     data object Idle : RecordingState()
@@ -18,7 +20,9 @@ sealed class RecordingState {
     data class Error(val message: String) : RecordingState()
 }
 
-class AudioRecorder(private val context: Context) {
+class AudioRecorder @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
     private var mediaRecorder: MediaRecorder? = null
     private val _state = MutableStateFlow<RecordingState>(RecordingState.Idle)
     val state: StateFlow<RecordingState> = _state.asStateFlow()

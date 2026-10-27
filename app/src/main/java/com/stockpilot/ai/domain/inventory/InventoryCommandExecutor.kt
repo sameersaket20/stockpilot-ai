@@ -3,8 +3,11 @@ package com.stockpilot.ai.domain.inventory
 import com.stockpilot.ai.data.local.ProductEntity
 import com.stockpilot.ai.data.local.StockStatus
 import com.stockpilot.ai.data.repository.InventoryOperations
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class InventoryCommandExecutor(
+@Singleton
+class InventoryCommandExecutor @Inject constructor(
     private val repository: InventoryOperations,
 ) {
     suspend fun execute(command: InventoryCommand): InventoryResult = when (command) {

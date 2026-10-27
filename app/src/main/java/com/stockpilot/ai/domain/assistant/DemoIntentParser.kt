@@ -2,6 +2,10 @@ package com.stockpilot.ai.domain.assistant
 
 import com.stockpilot.ai.domain.inventory.InventoryCommand
 
+/**
+ * Phase 1 **demo-only** intent parser for deterministic tests and UX.
+ * Not Gemma inference — replace or bypass in Phase 2 when a real [com.stockpilot.ai.inference.InferenceEngine] is ready.
+ */
 object DemoIntentParser {
     fun parse(request: String, context: ConversationContext): InventoryCommand {
         val text = request.trim().lowercase()

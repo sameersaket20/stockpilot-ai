@@ -1,14 +1,17 @@
 package com.stockpilot.ai
 
 import android.app.Application
-import com.stockpilot.ai.di.AppContainer
+import com.stockpilot.ai.di.AppInitializer
+import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
+@HiltAndroidApp
 class StockPilotApplication : Application() {
-    lateinit var container: AppContainer
-        private set
+
+    @Inject lateinit var appInitializer: AppInitializer
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+        appInitializer.start()
     }
 }

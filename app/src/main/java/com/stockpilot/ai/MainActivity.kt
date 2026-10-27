@@ -7,11 +7,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.stockpilot.ai.di.ProvideAppContainer
 import com.stockpilot.ai.ui.navigation.StockPilotApp
 import com.stockpilot.ai.ui.theme.StockPilotNavy
 import com.stockpilot.ai.ui.theme.StockPilotTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,13 +20,11 @@ class MainActivity : ComponentActivity() {
         val version = BuildConfig.VERSION_NAME
         setContent {
             StockPilotTheme {
-                ProvideAppContainer {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = StockPilotNavy,
-                    ) {
-                        StockPilotApp(appVersion = version)
-                    }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = StockPilotNavy,
+                ) {
+                    StockPilotApp(appVersion = version)
                 }
             }
         }

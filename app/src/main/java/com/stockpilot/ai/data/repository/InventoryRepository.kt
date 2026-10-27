@@ -1,6 +1,9 @@
 package com.stockpilot.ai.data.repository
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -28,8 +31,9 @@ enum class InventoryFilter {
     OUT_OF_STOCK,
 }
 
-class InventoryRepository(
-    private val context: Context,
+@Singleton
+class InventoryRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val productDao: ProductDao,
 ) : InventoryOperations {
     private val seededKey = booleanPreferencesKey("inventory_seeded")

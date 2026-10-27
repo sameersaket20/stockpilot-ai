@@ -23,14 +23,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.stockpilot.ai.di.LocalAppContainer
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.stockpilot.ai.ui.components.DemoModeBanner
 import com.stockpilot.ai.ui.theme.StockPilotNavy
-import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsRoute(
@@ -38,8 +36,7 @@ fun SettingsRoute(
     onOpenModels: () -> Unit,
     appVersion: String,
 ) {
-    val container = LocalAppContainer.current
-    val scope = rememberCoroutineScope()
+    val viewModel: SettingsViewModel = hiltViewModel()
     var showReset by remember { mutableStateOf(false) }
 
     SettingsScreen(
@@ -57,10 +54,8 @@ fun SettingsRoute(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        scope.launch {
-                            container.inventoryRepository.resetSeedData()
-                            showReset = false
-                        }
+                        viewModel.resetSeedInventory()
+                        showReset = false
                     },
                 ) { Text("Reset") }
             },

@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
 data class TtsStatus(
     val initialized: Boolean = false,
@@ -18,7 +20,9 @@ data class TtsStatus(
     val speaking: Boolean = false,
 )
 
-class AndroidTtsManager(context: Context) {
+class AndroidTtsManager @Inject constructor(
+    @ApplicationContext context: Context,
+) {
     private val appContext = context.applicationContext
     private val _status = MutableStateFlow(TtsStatus())
     val status: StateFlow<TtsStatus> = _status.asStateFlow()

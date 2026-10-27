@@ -2,6 +2,8 @@ package com.stockpilot.ai.ui.assistant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.stockpilot.ai.domain.assistant.AssistantOrchestrator
 import com.stockpilot.ai.domain.assistant.ConversationContext
 import com.stockpilot.ai.speech.AndroidTtsManager
@@ -28,7 +30,8 @@ data class AssistantUiState(
     val micPermissionDenied: Boolean = false,
 )
 
-class AssistantViewModel(
+@HiltViewModel
+class AssistantViewModel @Inject constructor(
     private val orchestrator: AssistantOrchestrator,
     private val speechEngine: SpeechEngine,
     private val audioRecorder: AudioRecorder,
@@ -63,6 +66,7 @@ class AssistantViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AssistantUiState())
 
     init {
+        ttsManager.initialize()
         messages.value = listOf(
             ChatMessage(
                 role = ChatRole.SYSTEM,
@@ -70,6 +74,8 @@ class AssistantViewModel(
             ),
         )
     }
+
+    fun hasMicPermission(): Boolean = audioRecorder.hasMicPermission()
 
     fun onInputChange(value: String) {
         input.value = value
@@ -167,6 +173,7 @@ class AssistantViewModel(
     override fun onCleared() {
         audioRecorder.cancel()
         ttsManager.stop()
+        ttsManager.shutdown()
         super.onCleared()
     }
 }
