@@ -32,6 +32,8 @@ class ModelStorage @Inject constructor(
 
     private val gemmaManifest = MutableStateFlow<ModelManifest?>(null)
     private val whisperManifest = MutableStateFlow<ModelManifest?>(null)
+    private val gemmaRuntimeError = MutableStateFlow<String?>(null)
+    private val whisperRuntimeError = MutableStateFlow<String?>(null)
 
     fun status(type: ModelType): StateFlow<ModelStatus> = when (type) {
         ModelType.GEMMA -> gemmaStatus.asStateFlow()
@@ -54,7 +56,21 @@ class ModelStorage @Inject constructor(
                 }
                 else -> {
                     setManifest(type, manifest)
-                    setStatus(type, ModelStatus.ImportedUnverified)
+                    val keepRuntime = when (type) {
+                        ModelType.GEMMA -> gemmaStatus.value in setOf(
+                            ModelStatus.Ready,
+                            ModelStatus.Loading,
+                            ModelStatus.Error,
+                        )
+                        ModelType.WHISPER -> whisperStatus.value in setOf(
+                            ModelStatus.Ready,
+                            ModelStatus.Loading,
+                            ModelStatus.Error,
+                        )
+                    }
+                    if (!keepRuntime) {
+                        setStatus(type, ModelStatus.ImportedUnverified)
+                    }
                 }
             }
         }
@@ -92,6 +108,34 @@ class ModelStorage @Inject constructor(
         val stat = StatFs(context.filesDir.path)
         return stat.availableBytes
     }
+
+    fun gemmaModelAbsolutePath(): String? = modelAbsolutePath(ModelType.GEMMA)
+
+    fun whisperModelAbsolutePath(): String? = modelAbsolutePath(ModelType.WHISPER)
+
+    private fun modelAbsolutePath(type: ModelType): String? {
+        val manifest = when (type) {
+            ModelType.GEMMA -> gemmaManifest.value
+            ModelType.WHISPER -> whisperManifest.value
+        } ?: return null
+        val entry = manifest.files.firstOrNull() ?: return null
+        val file = File(modelsRoot(), entry.relativePath)
+        return file.takeIf { it.exists() && it.length() > 0 }?.absolutePath
+    }
+
+    fun updateRuntimeStatus(type: ModelType, status: ModelStatus, errorMessage: String?) {
+        setStatus(type, status)
+        when (type) {
+            ModelType.GEMMA ->
+                gemmaRuntimeError.value = if (status == ModelStatus.Error) errorMessage else null
+            ModelType.WHISPER ->
+                whisperRuntimeError.value = if (status == ModelStatus.Error) errorMessage else null
+        }
+    }
+
+    fun gemmaRuntimeError(): StateFlow<String?> = gemmaRuntimeError.asStateFlow()
+
+    fun whisperRuntimeError(): StateFlow<String?> = whisperRuntimeError.asStateFlow()
 
     private suspend fun readManifest(type: ModelType): ModelManifest? {
         val raw = context.modelPrefs.data.first()[manifestKey(type)] ?: return null

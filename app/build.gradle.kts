@@ -6,6 +6,17 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+configurations.all {
+    resolutionStrategy {
+        force(
+            "org.jetbrains.kotlin:kotlin-stdlib:2.3.21",
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.21",
+            "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.21",
+            "org.jetbrains.kotlin:kotlin-reflect:2.3.21",
+        )
+    }
+}
+
 android {
     namespace = "com.stockpilot.ai"
     compileSdk = 36
@@ -33,9 +44,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -44,6 +52,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 
@@ -67,7 +81,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.litertlm.android)
+    implementation(libs.whisper.android)
     ksp(libs.hilt.compiler)
+    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.21")
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

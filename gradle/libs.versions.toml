@@ -1,7 +1,7 @@
 [versions]
-agp = "8.11.2"
-kotlin = "2.0.21"
-ksp = "2.0.21-1.0.28"
+agp = "8.11.1"
+kotlin = "2.3.21"
+ksp = "2.3.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -10,12 +10,14 @@ lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
 composeBom = "2024.09.00"
 navigationCompose = "2.8.9"
-room = "2.6.1"
+room = "2.8.4"
 datastore = "1.1.2"
-coroutines = "1.9.0"
+coroutines = "1.10.2"
 orgJson = "20240303"
 lifecycleViewmodelCompose = "2.8.7"
-hilt = "2.51.1"
+hilt = "2.57.2"
+litertLm = "0.18.0"
+whisperAndroid = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -47,6 +49,8 @@ org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
+litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertLm" }
+whisper-android = { group = "dev.ffmpegkit-maintained", name = "whisper-android", version.ref = "whisperAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
