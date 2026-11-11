@@ -25,6 +25,7 @@ fun ProductEditDialog(
     isSaving: Boolean,
     onDismiss: () -> Unit,
     onSave: (ProductEntity) -> Unit,
+    saveError: String? = null,
 ) {
     var stock by remember(product.id) { mutableStateOf(product.stockQuantity.toString()) }
     var reorder by remember(product.id) { mutableStateOf(product.reorderThreshold.toString()) }
@@ -70,6 +71,9 @@ fun ProductEditDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
+                saveError?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                }
                 validationError?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }

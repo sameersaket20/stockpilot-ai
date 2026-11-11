@@ -1,6 +1,7 @@
 package com.stockpilot.ai.di
 
 import android.content.Context
+import com.stockpilot.ai.data.local.AssistantMessageDao
 import com.stockpilot.ai.data.local.ProductDao
 import com.stockpilot.ai.data.local.StockPilotDatabase
 import dagger.Module
@@ -22,4 +23,8 @@ object DatabaseModule {
     @Provides
     fun provideProductDao(database: StockPilotDatabase): ProductDao =
         database.productDao()
+
+    @Provides
+    fun provideAssistantMessageDao(database: StockPilotDatabase): AssistantMessageDao =
+        database.assistantMessageDao()
 }

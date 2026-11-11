@@ -80,6 +80,8 @@ class InventoryRepository @Inject constructor(
         context.inventoryPrefs.edit { it[seededKey] = true }
     }
 
+    suspend fun getProductById(id: Long): ProductEntity? = productDao.getById(id)
+
     suspend fun updateProduct(product: ProductEntity) {
         require(product.stockQuantity >= 0) { "stockQuantity must be non-negative" }
         require(product.reorderThreshold >= 0)
@@ -88,7 +90,7 @@ class InventoryRepository @Inject constructor(
         productDao.update(product.copy(updatedAt = System.currentTimeMillis()))
     }
 
-    suspend fun getAllProducts(): List<ProductEntity> = productDao.getAllOnce()
+    override suspend fun getAllProducts(): List<ProductEntity> = productDao.getAllOnce()
 
     override suspend fun findByNameOrSku(query: String): List<ProductEntity> {
         val trimmed = query.trim()

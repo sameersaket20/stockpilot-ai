@@ -33,3 +33,4 @@
 
 - `@OptIn(ExperimentalCoroutinesApi)` for `flatMapLatest` in `InventoryViewModel` (warning only).
 - Material volume icons deprecation warnings in `AssistantScreen`.
+Guardrails run on every assistant reply before display.

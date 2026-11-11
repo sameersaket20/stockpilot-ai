@@ -62,3 +62,4 @@ References (manual):
 5. Change stock to **15**, ask again → reorder suggestion updates.
 6. Record voice → see Whisper not installed message.
 7. Model Manager → import any small dummy file → **Imported (unverified)**.
+Chat history persists across app restarts.

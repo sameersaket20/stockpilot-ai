@@ -78,6 +78,15 @@ class InventoryViewModel @Inject constructor(
         errorMessage.value = null
     }
 
+    fun openProductById(productId: Long) {
+        viewModelScope.launch {
+            val product = repository.getProductById(productId) ?: return@launch
+            searchQuery.value = ""
+            filter.value = InventoryFilter.ALL
+            openEdit(product)
+        }
+    }
+
     fun dismissEdit() {
         editingProduct.value = null
         errorMessage.value = null

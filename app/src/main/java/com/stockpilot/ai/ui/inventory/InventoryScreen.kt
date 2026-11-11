@@ -57,9 +57,15 @@ import com.stockpilot.ai.ui.theme.StockPilotTeal
 fun InventoryRoute(
     onOpenAssistant: () -> Unit,
     onOpenSettings: () -> Unit,
+    highlightProductId: Long = -1L,
     viewModel: InventoryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.screenState.collectAsStateWithLifecycle()
+    androidx.compose.runtime.LaunchedEffect(highlightProductId) {
+        if (highlightProductId > 0L) {
+            viewModel.openProductById(highlightProductId)
+        }
+    }
     InventoryScreen(
         state = state,
         onSearchChange = viewModel::onSearchChange,
