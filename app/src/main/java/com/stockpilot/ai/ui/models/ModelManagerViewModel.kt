@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.stockpilot.ai.inference.GemmaInferenceEngine
+import com.stockpilot.ai.speech.WhisperSpeechEngine
 import com.stockpilot.ai.inference.ModelStatus
 import com.stockpilot.ai.models.ModelImportManager
 import com.stockpilot.ai.models.ModelType
@@ -28,6 +30,8 @@ data class ModelManagerScreenState(
 class ModelManagerViewModel @Inject constructor(
     private val storage: ModelStorage,
     private val importManager: ModelImportManager,
+    private val gemmaInferenceEngine: GemmaInferenceEngine,
+    private val whisperSpeechEngine: WhisperSpeechEngine,
 ) : ViewModel() {
     private val statusMessage = MutableStateFlow<String?>(null)
     private val errorMessage = MutableStateFlow<String?>(null)
@@ -73,8 +77,10 @@ class ModelManagerViewModel @Inject constructor(
             val result = importManager.importDocument(type, uri)
             result.fold(
                 onSuccess = {
-                    statusMessage.value =
-                        "${type.displayName} imported (unverified). Phase 2 required for runtime validation."
+                    statusMessage.value = when (type) {
+                        ModelType.GEMMA -> "${type.displayName} imported — loading LiteRT-LM on CPU…"
+                        ModelType.WHISPER -> "${type.displayName} imported — loading Whisper on CPU…"
+                    }
                 },
                 onFailure = { errorMessage.value = it.message ?: "Import failed" },
             )
@@ -83,16 +89,37 @@ class ModelManagerViewModel @Inject constructor(
 
     fun removeModel(type: ModelType) {
         viewModelScope.launch {
+            when (type) {
+                ModelType.GEMMA -> gemmaInferenceEngine.releaseModel()
+                ModelType.WHISPER -> whisperSpeechEngine.releaseModel()
+            }
             storage.removeModel(type)
             statusMessage.value = "${type.displayName} removed."
         }
     }
 
+    fun retryGemmaLoad() {
+        gemmaInferenceEngine.scheduleInitialize()
+        statusMessage.value = "Retrying Gemma LiteRT-LM initialization…"
+    }
+
+    fun retryWhisperLoad() {
+        whisperSpeechEngine.scheduleInitialize()
+        statusMessage.value = "Retrying Whisper initialization…"
+    }
+
     fun statusLabel(status: ModelStatus): String = when (status) {
         ModelStatus.NotInstalled -> "Missing"
-        ModelStatus.ImportedUnverified -> "Imported (unverified)"
-        ModelStatus.Loading -> "Loading"
-        ModelStatus.Ready -> "Ready (runtime verified)"
+        ModelStatus.ImportedUnverified -> "Imported — starting on-device runtime"
+        ModelStatus.Loading -> "Loading Gemma on CPU (LiteRT-LM)…"
+        ModelStatus.Ready -> {
+            val backend = gemmaInferenceEngine.runtimeBackend.value
+            if (backend != null) {
+                "Ready — on-device model active ($backend)"
+            } else {
+                "Ready — on-device model active"
+            }
+        }
         ModelStatus.Error -> "Error"
     }
 

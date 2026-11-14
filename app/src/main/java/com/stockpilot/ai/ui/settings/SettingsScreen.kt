@@ -27,7 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.stockpilot.ai.ui.components.DemoModeBanner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.stockpilot.ai.ui.components.GemmaRuntimeBanner
 import com.stockpilot.ai.ui.theme.StockPilotNavy
 
 @Composable
@@ -37,10 +38,12 @@ fun SettingsRoute(
     appVersion: String,
 ) {
     val viewModel: SettingsViewModel = hiltViewModel()
+    val gemmaStatus by viewModel.gemmaStatus.collectAsStateWithLifecycle()
     var showReset by remember { mutableStateOf(false) }
 
     SettingsScreen(
         appVersion = appVersion,
+        gemmaStatus = gemmaStatus,
         onBack = onBack,
         onOpenModels = onOpenModels,
         onRequestReset = { showReset = true },
@@ -70,6 +73,7 @@ fun SettingsRoute(
 @Composable
 fun SettingsScreen(
     appVersion: String,
+    gemmaStatus: com.stockpilot.ai.inference.ModelStatus,
     onBack: () -> Unit,
     onOpenModels: () -> Unit,
     onRequestReset: () -> Unit,
@@ -95,11 +99,10 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            DemoModeBanner()
+            GemmaRuntimeBanner(gemmaStatus)
             Text("StockPilot AI $appVersion", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Offline-first Room inventory with a demo command interpreter. " +
-                    "Gemma 4 E2B and Whisper Tiny.en integrate in Phase 2 after you import weights.",
+                "Offline-first inventory with Gemma 4 E2B (LiteRT-LM) and optional Whisper Tiny.en speech input.",
                 style = MaterialTheme.typography.bodyLarge,
             )
             Button(onClick = onOpenModels, modifier = Modifier.fillMaxWidth()) {

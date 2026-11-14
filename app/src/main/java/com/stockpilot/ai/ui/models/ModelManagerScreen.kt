@@ -37,7 +37,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.stockpilot.ai.models.ModelType
 import com.stockpilot.ai.models.ModelUiState
-import com.stockpilot.ai.ui.components.DemoModeBanner
+import com.stockpilot.ai.inference.ModelStatus
+import com.stockpilot.ai.ui.components.GemmaRuntimeBanner
 import com.stockpilot.ai.ui.components.ModelStatusBadge
 import com.stockpilot.ai.ui.theme.StockPilotNavy
 import com.stockpilot.ai.ui.theme.StockPilotSurface
@@ -98,11 +99,14 @@ fun ModelManagerScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { DemoModeBanner() }
+            item {
+                val gemmaStatus = state.models.firstOrNull { it.type == ModelType.GEMMA }?.status
+                    ?: ModelStatus.NotInstalled
+                GemmaRuntimeBanner(gemmaStatus)
+            }
             item {
                 Text(
-                    "Import model files you transferred to this device (Downloads / Files). " +
-                        "Import does not enable inference until Phase 2 integrates LiteRT-LM and whisper.cpp.",
+                    "Import Gemma or Whisper files from Downloads / Files. Gemma runs on-device via LiteRT-LM after import.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -146,7 +150,14 @@ private fun ModelCard(
                     "Imported: ${DateFormat.getDateTimeInstance().format(Date(manifest.importedAtEpochMs))}",
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                manifest.notes?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                val note = when {
+                    model.type == ModelType.GEMMA && model.status == ModelStatus.Ready ->
+                        "On-device LiteRT-LM (CPU)."
+                    model.type == ModelType.WHISPER && model.status == ModelStatus.Ready ->
+                        "On-device Whisper (CPU, arm64)."
+                    else -> manifest.notes
+                }
+                note?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
             }
             model.importProgress?.let {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())

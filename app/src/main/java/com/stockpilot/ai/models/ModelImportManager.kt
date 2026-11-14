@@ -3,6 +3,8 @@ package com.stockpilot.ai.models
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import com.stockpilot.ai.inference.GemmaInferenceEngine
+import com.stockpilot.ai.speech.WhisperSpeechEngine
 import com.stockpilot.ai.inference.ModelStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,8 @@ import javax.inject.Singleton
 class ModelImportManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val storage: ModelStorage,
+    private val gemmaInferenceEngine: GemmaInferenceEngine,
+    private val whisperSpeechEngine: WhisperSpeechEngine,
 ) {
     private val _importProgress = MutableStateFlow<Pair<ModelType, Float>?>(null)
     val importProgress: StateFlow<Pair<ModelType, Float>?> = _importProgress.asStateFlow()
@@ -76,9 +80,13 @@ class ModelImportManager @Inject constructor(
                         sizeBytes = destFile.length(),
                     ),
                 ),
-                notes = "Imported for future Phase 2 integration — not verified for inference.",
+                notes = "Imported for on-device LiteRT-LM inference.",
             )
             storage.commitManifest(type, manifest)
+            when (type) {
+                ModelType.GEMMA -> gemmaInferenceEngine.scheduleInitialize()
+                ModelType.WHISPER -> whisperSpeechEngine.scheduleInitialize()
+            }
             Result.success(manifest)
         } catch (e: Exception) {
             temp.delete()

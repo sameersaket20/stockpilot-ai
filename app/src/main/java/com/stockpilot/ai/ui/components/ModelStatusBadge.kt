@@ -19,7 +19,7 @@ import com.stockpilot.ai.ui.theme.StockPilotWarning
 fun ModelStatusBadge(status: ModelStatus, modifier: Modifier = Modifier) {
     val (label, color) = when (status) {
         ModelStatus.NotInstalled -> "Missing" to StockPilotTextSecondary
-        ModelStatus.ImportedUnverified -> "Imported (unverified)" to StockPilotWarning
+        ModelStatus.ImportedUnverified -> "Imported" to StockPilotWarning
         ModelStatus.Loading -> "Loading" to StockPilotWarning
         ModelStatus.Ready -> "Ready" to StockPilotTeal
         ModelStatus.Error -> "Error" to StockPilotError
@@ -35,13 +35,20 @@ fun ModelStatusBadge(status: ModelStatus, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun DemoModeBanner(modifier: Modifier = Modifier) {
+fun GemmaRuntimeBanner(status: ModelStatus, modifier: Modifier = Modifier) {
+    val (text, color) = when (status) {
+        ModelStatus.Ready -> return
+        ModelStatus.Loading -> "Loading Gemma on-device…" to StockPilotWarning
+        ModelStatus.Error -> "Gemma failed to load — check Model Manager." to StockPilotError
+        ModelStatus.ImportedUnverified -> "Gemma imported — waiting for runtime." to StockPilotWarning
+        ModelStatus.NotInstalled -> "Import Gemma 4 E2B in Model Manager to use the assistant." to StockPilotWarning
+    }
     Text(
-        text = "DEMO MODE — no AI models loaded",
+        text = text,
         modifier = modifier
-            .background(StockPilotWarning.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        color = StockPilotWarning,
+        color = color,
         style = MaterialTheme.typography.labelLarge,
     )
 }

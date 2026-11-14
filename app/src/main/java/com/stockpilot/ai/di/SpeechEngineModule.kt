@@ -1,7 +1,7 @@
 package com.stockpilot.ai.di
 
 import com.stockpilot.ai.speech.SpeechEngine
-import com.stockpilot.ai.speech.UninstalledSpeechEngine
+import com.stockpilot.ai.speech.RoutingSpeechEngine
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,5 +14,5 @@ abstract class SpeechEngineModule {
 
     @Binds
     @Singleton
-    abstract fun bindSpeechEngine(impl: UninstalledSpeechEngine): SpeechEngine
+    abstract fun bindSpeechEngine(impl: RoutingSpeechEngine): SpeechEngine
 }
