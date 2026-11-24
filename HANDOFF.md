@@ -1,65 +1,54 @@
-# StockPilot AI — Phase 1 Handoff
+# StockPilot AI — Handoff
+
+> **Evolution & benchmarks:** see [IMPROVEMENTS.md](./IMPROVEMENTS.md) for before/after and measured latency (GPU ~10s vs CPU ~30s).
 
 ## What works today
 
-- **Inventory dashboard** — 30 seeded retail SKUs (includes **Blue T-shirt**), live KPIs, search, low/out filters, edit dialog with validation.
-- **Room persistence** — stock edits survive process death (DataStore “seeded” flag prevents re-seed).
-- **Inventory Assistant (DEMO MODE)** — typed questions parsed by `DemoIntentParser`; answers from `InventoryCommandExecutor` + live Room data; labeled **“Demo interpreter • Live Room data”**.
-- **Conversation context** — follow-up reorder questions can reference the last product (e.g. after asking about Blue T-shirt).
-- **Voice** — `RECORD_AUDIO` permission, push-to-talk recording (16 kHz mono target format); **no fake transcription** — shows Whisper-not-installed message.
-- **TTS** — Android `TextToSpeech` with mute toggle; warns if offline voice uncertain.
-- **Model Manager** — Gemma + Whisper cards; SAF import into app-private storage; streaming copy; replace/remove; status **Missing** or **Imported (unverified)** only (never **Ready** without runtime).
-- **Settings** — about blurb, Model Manager link, confirmed inventory reset.
+- **Inventory dashboard** — 30 seeded retail SKUs, KPIs, search, low/out filters, edit dialog.
+- **Room persistence** — stock edits survive process death.
+- **Inventory Assistant** — `InventoryAgentOrchestrator`: Gemma **planner** (`tool_calls`) → `InventoryToolRunner` → Gemma **narrator** → `ResponseGuardrails`. Provenance + **Responded in Xs** on replies.
+- **No demo command path** — legacy intent parser / command executor removed.
+- **Voice** — Whisper when **Ready**; honest errors when not loaded.
+- **Model Manager** — Gemma + Whisper import; **GPU (Adreno) then CPU** for Gemma; backend label when **Ready**.
+- **Chat** — persisted messages, pagination, product link cards, IME-safe scroll.
 
-## What is NOT implemented (Phase 2)
+## Assistant pipeline (Gemma Ready)
 
-- Real **Gemma 4 E2B** inference (LiteRT-LM).
-- Real **Whisper Tiny.en** transcription (whisper.cpp JNI).
-- Disabling demo interpreter when real models load.
-- Airplane-mode voice demo on hardware.
+1. **Planner:** JSON `tool_calls` (`inventory_summary`, `query_products`, `full_inventory_read`, `compute_reorder`).
+2. **Execute:** read-only Room tools; `field_glossary` + `product_lines` in facts.
+3. **Narrate:** natural language from `FACTS_JSON` only.
+4. **Guardrails:** deterministic mutation/SQL checks (no extra Gemma pass on success path).
 
-## How to import models later (on device)
+If Gemma is missing or fails: explicit fallback messaging (optional facts-only low/out list on failure only).
 
-1. Transfer files to the phone (Downloads, USB, etc.) — **the app does not download weights**.
-2. Open **Settings → Model Manager**.
-3. Tap **Import** on the correct card and pick the file via the system document picker (no broad storage permission).
-4. Status becomes **Imported (unverified)** — this only stores files; Phase 2 must validate and initialize runtimes.
-5. **Gemma:** LiteRT distributions may include **multiple assets**; current manifest supports a file list and can be extended for multi-file packages.
-6. **Whisper:** expect a GGML `.bin` (e.g. `ggml-tiny.en.bin`).
+## How to import models (on device)
 
-Private storage paths: `filesDir/models/gemma/` and `filesDir/models/whisper/`.
+1. Transfer weights to the phone (Downloads / USB) — **app does not download models**.
+2. **Settings → Model Manager** → Import → pick file.
+3. Wait for **Ready** — Gemma should show **`GPU (Adreno)`** or **`CPU (XNNPACK)`**.
+4. **Gemma:** `gemma-4-E2B-it.litertlm` (see `GEMMA_MODEL_PREP.md`).
+5. **Whisper:** `ggml-tiny.en.bin` (see `WHISPER_MODEL_PREP.md`).
 
-## Phase 2 checklist (do not start until model files are on device)
+Storage: `filesDir/models/gemma/`, `filesDir/models/whisper/`.
 
-1. Verify LiteRT-LM + Gemma 4 E2B format for your OnePlus 10 Pro API level; read official APIs — no invented integration.
-2. Implement `GemmaInferenceEngine` after successful native runtime init; only then set `ModelStatus.Ready`.
-3. Structured command JSON from Gemma → validate in Kotlin → execute; never trust model arithmetic.
-4. Integrate whisper.cpp Android example; implement `WhisperSpeechEngine`; resample recorded audio as needed.
-5. Profile memory; likely load one model at a time.
-6. Confirm offline TTS voice packs.
-7. Turn off demo parser for production demo path (optional debug flag).
-8. Airplane-mode acceptance on real hardware.
+## Intentional boundaries
 
-References (manual):
-
-- [LiteRT-LM overview](https://developers.google.com/edge/litert-lm/overview)
-- [Gemma 4 E2B LiteRT](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
-- [whisper.cpp Android example](https://github.com/ggml-org/whisper.cpp/tree/master/examples/whisper.android)
+| Piece | Why |
+|-------|-----|
+| Read-only tool surface | No DB writes from the agent |
+| Structured `query_products` | Safe filters—not raw SQL from the model |
+| Two Gemma calls / message | Plan accuracy vs latency tradeoff (GPU mitigates) |
 
 ## Known limitations
 
-- Suggested chip **“How many should I order?”** needs a product in context or a fuller sentence.
-- Import validation is filename/size heuristics only — not compatibility proof.
-- Instrumentation test `InventoryDaoInstrumentedTest` added but **not run** (no device in CI session).
-- Starter project name in Android Studio may still show legacy paths in `.idea` until re-imported.
+- Import validation is filename/size heuristics.
+- Planner JSON may be invalid — bootstrap `inventory_summary` + `query_products` if empty.
+- Thermal throttling can increase latency on long GPU runs.
 
 ## Quick demo script
 
-1. Install `app-debug.apk` on device.
-2. Search **Blue T-shirt** → set quantity **24** → save.
-3. **Ask Inventory AI** → `How many blue T-shirts do we have?`
-4. `If we sell 10 tomorrow, how many should I order to have 30 left?` → expect **16**.
-5. Change stock to **15**, ask again → reorder suggestion updates.
-6. Record voice → see Whisper not installed message.
-7. Model Manager → import any small dummy file → **Imported (unverified)**.
-Chat history persists across app restarts.
+1. Model Manager → Gemma **Ready (GPU (Adreno))**.
+2. **Lookup:** *“What’s the highest quantity on hand?”* → ~10s, provenance + **Responded in …**.
+3. **Open-ended:** *“What’s the next best thing to do?”* → prioritization from live low/out/reorder data, ~**12s** on GPU (no scripted command).
+4. **Precision:** zero on-hand / out of stock — only `on_hand_qty = 0` SKUs, not LOW-with-stock.
+5. Optional: edit a SKU in inventory, voice with Whisper **Ready**, airplane mode.

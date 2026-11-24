@@ -1,21 +1,26 @@
 # StockPilot AI
 
-Offline-first Android retail inventory with a conversational assistant. **Phase 1** ships inventory UI, Room data, a **DEMO MODE** command interpreter (no Gemma/Whisper weights), voice recording, Android TTS, and model import plumbing for Phase 2.
+Offline-first Android retail inventory with a conversational **on-device agent** (Gemma 4 E2B via LiteRT-LM, Whisper for voice). Read-only access to Room inventory; no cloud LLM; provenance on every assistant reply.
 
 | | |
 |---|---|
 | **Application ID** | `com.stockpilot.ai` |
-| **Stack** | Kotlin, Jetpack Compose (Material 3), Room, Navigation, DataStore, coroutines |
+| **Stack** | Kotlin, Jetpack Compose (Material 3), Room, Navigation, DataStore, Hilt, coroutines, LiteRT-LM |
+
+## Highlights (for reviewers)
+
+- **~30s → ~10–12s** assistant latency on OnePlus 10 Pro (**GPU** first, CPU fallback); e.g. lookups ~**10s**, open-ended *“what’s the next best thing to do?”* ~**12s** (in-chat timer).
+- **Plan → query → answer:** Gemma plans generic `tool_calls`; Kotlin runs Room tools; narrator uses **field glossary**—works for **lookups and arbitrary advisory questions** (no fixed intent menu).
+- **Honest offline UX:** Model Manager, provenance labels, **“Responded in Xs”** on each assistant reply.
+
+Full before/after write-up: **[IMPROVEMENTS.md](./IMPROVEMENTS.md)**
 
 ## Features
 
-- Dashboard KPIs, search, stock filters, product editing
-- 30-product sample catalog (5+ low stock, 2 out of stock)
-- Typed assistant: stock lookup, low-stock list, reorder math (`max(0, target − (stock − sales))`)
-- Push-to-talk + honest “speech model not installed” UX
-- Model Manager (SAF import, private storage, unverified status)
-
-**DEMO MODE** is shown anywhere assistant behavior is simulated. Imported model files do **not** enable AI until Phase 2 runtimes are integrated.
+- Dashboard KPIs, search, stock filters, product editing (30-SKU seed catalog)
+- **Inventory Assistant** — planner + read-only tools + narrator + guardrails; tappable product rows; persisted chat
+- Voice: push-to-talk + Whisper when imported; TTS (default off)
+- Model Manager: SAF import for Gemma + Whisper
 
 ## Build & run
 
@@ -25,30 +30,38 @@ cd AndroidStudioProjects/SamInference
 ./gradlew testDebugUnitTest
 ```
 
-Install: `app/build/outputs/apk/debug/app-debug.apk`
+Install: `app/build/outputs/apk/debug/app-debug.apk` or `./gradlew installDebug`
 
-Open in Android Studio: sync Gradle, run on API 26+ device/emulator. Microphone permission is requested from the Assistant screen.
+Open in Android Studio: sync Gradle, run on API 26+. Microphone permission from the Assistant screen.
 
-## Architecture (high level)
+## Architecture
 
 ```text
-UI (Compose) → ViewModels → InventoryRepository / AssistantOrchestrator
-                                    ↓
-                              Room (ProductEntity)
-DemoInferenceEngine → DemoIntentParser → InventoryCommandExecutor
-UninstalledSpeechEngine + AudioRecorder + AndroidTtsManager
-ModelImportManager → ModelStorage (filesDir/models + DataStore metadata)
+AssistantScreen → AssistantViewModel → AssistantOrchestrator
+                                         → InventoryAgentOrchestrator
+                                               → GemmaInferenceEngine (GPU→CPU, plan + narrate)
+                                               → InventoryToolRunner (summary / query / full read)
+                                               → ResponseGuardrails
+Inventory UI → InventoryRepository → Room (ProductEntity)
+WhisperSpeechEngine ← ModelStorage ← ModelImportManager
 ```
 
-See `HANDOFF.md` for Phase 2 and model import steps.
+## Models (not in git)
+
+Import on device via **Settings → Model Manager**. See `GEMMA_MODEL_PREP.md` and `WHISPER_MODEL_PREP.md`.
 
 ## Tests
 
-| Suite | Location |
+| Suite | Examples |
 |-------|----------|
-| JVM unit | `ReorderCalculatorTest`, `DemoIntentParserTest`, `InventoryCommandExecutorTest`, `ModelManifestTest` |
-| Instrumented (optional) | `InventoryDaoInstrumentedTest` — requires device/emulator |
+| Unit | `InventoryProductQueryTest`, `AgentPlanParserTest`, `ChatResponseTimingTest`, `ReorderCalculatorTest` |
+| Instrumented | `InventoryDaoInstrumentedTest` (device) |
 
-## License / models
+## Docs index
 
-Do not commit model weights. `.gitignore` excludes common weight extensions and `files/models/`.
+| File | Purpose |
+|------|---------|
+| [IMPROVEMENTS.md](./IMPROVEMENTS.md) | Before/after, performance, agent design notes |
+| [HANDOFF.md](./HANDOFF.md) | Operational handoff, import, limitations |
+| [GEMMA_MODEL_PREP.md](./GEMMA_MODEL_PREP.md) | LiteRT artifact selection |
+| [BUILD_PROGRESS.md](./BUILD_PROGRESS.md) | Milestone log |

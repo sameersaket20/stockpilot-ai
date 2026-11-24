@@ -1,6 +1,8 @@
 package com.stockpilot.ai.di
 
 import com.stockpilot.ai.data.repository.InventoryRepository
+import com.stockpilot.ai.inference.GemmaInferenceEngine
+import com.stockpilot.ai.speech.WhisperSpeechEngine
 import com.stockpilot.ai.models.ModelStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +15,8 @@ import javax.inject.Singleton
 class AppInitializer @Inject constructor(
     private val inventoryRepository: InventoryRepository,
     private val modelStorage: ModelStorage,
+    private val gemmaInferenceEngine: GemmaInferenceEngine,
+    private val whisperSpeechEngine: WhisperSpeechEngine,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -20,6 +24,8 @@ class AppInitializer @Inject constructor(
         scope.launch {
             inventoryRepository.ensureSeeded()
             modelStorage.refreshFromDisk()
+            gemmaInferenceEngine.scheduleInitialize()
+            whisperSpeechEngine.scheduleInitialize()
         }
     }
 }

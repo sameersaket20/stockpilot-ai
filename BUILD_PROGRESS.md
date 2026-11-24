@@ -4,7 +4,7 @@
 |-----------|--------|----------|
 | 1 — Foundation (Gradle, theme, navigation) | Done | `./gradlew assembleDebug` SUCCESS |
 | 2 — Room inventory + dashboard UI | Done | 30-product seed, KPI/search/filter/edit |
-| 3 — Assistant demo mode + tests | Done | `testDebugUnitTest` (parser/executor/reorder) |
+| 3 — Inventory agent + tests | Done | `testDebugUnitTest` (agent/guardrails/reorder) |
 | 4 — Audio + TTS | Done | Push-to-talk, honest Whisper-unavailable message |
 | 5 — Model Manager import | Done | SAF import, atomic copy, ImportedUnverified only |
 | 6 — Polish + handoff | Done | This file, `README.md`, `HANDOFF.md` |
@@ -27,10 +27,9 @@
 - Application ID `com.stockpilot.ai` (renamed from starter `com.peaic.saminference`).
 - AndroidX versions pinned for **AGP 8.11.2 / compileSdk 36** (downgraded from template 1.19.x / lifecycle 2.11).
 - `InventoryOperations` interface extracted for JVM unit tests without Robolectric.
-- Real inference statuses never set to `Ready` in Phase 1; import → `ImportedUnverified` only.
+- Gemma/Whisper set `Ready` only after successful runtime init (not on import alone).
 
 ## Open polish (non-blocking)
 
 - `@OptIn(ExperimentalCoroutinesApi)` for `flatMapLatest` in `InventoryViewModel` (warning only).
 - Material volume icons deprecation warnings in `AssistantScreen`.
-Guardrails run on every assistant reply before display.

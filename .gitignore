@@ -7,12 +7,18 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/vcs.xml
 .DS_Store
+.cursor/
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local model staging (never commit)
+/models/
 
 # Model weights and large imports — never commit
 *.gguf

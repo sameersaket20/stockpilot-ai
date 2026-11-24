@@ -16,7 +16,7 @@ data class TtsStatus(
     val available: Boolean = false,
     val offlineCapable: Boolean = false,
     val warning: String? = null,
-    val muted: Boolean = false,
+    val muted: Boolean = true,
     val speaking: Boolean = false,
 )
 
