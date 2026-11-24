@@ -1,0 +1,49 @@
+%% Keep in sync with README · full fallbacks in IMPROVEMENTS.md / InventoryAgentOrchestrator
+sequenceDiagram
+  autonumber
+  actor User
+  participant VM as AssistantViewModel
+  participant STT as RoutingSpeechEngine
+  participant Chat as AssistantChatRepository
+  participant AO as AssistantOrchestrator
+  participant IAO as InventoryAgentOrchestrator
+  participant Gemma as GemmaInferenceEngine
+  participant Tools as InventoryToolRunner
+  participant Room as InventoryRepository and Room
+
+  opt Voice input
+    User->>VM: push-to-talk WAV
+    VM->>STT: transcribe
+    STT-->>VM: text or Unavailable
+  end
+
+  User->>VM: send user text
+  VM->>Chat: insert user message
+  VM->>AO: respond
+  Note right of AO: delegates only
+  AO->>IAO: respond
+
+  alt Gemma not Ready
+    IAO-->>VM: agent unavailable
+  else Happy path
+    Note over Gemma: AI planner
+    IAO->>Gemma: complete planner
+    Gemma-->>IAO: tool_calls JSON
+    Note over Tools,Room: deterministic reads
+    loop Up to 6 tool_calls
+      IAO->>Tools: invoke
+      Tools->>Room: read-only query
+      Room-->>Tools: ProductEntity rows
+      Tools-->>IAO: facts JSON
+    end
+    Note over Gemma: AI narrator
+    IAO->>Gemma: complete narrator
+    Gemma-->>IAO: draft answer
+    IAO->>IAO: ResponseGuardrails and Safety fast path
+    IAO-->>VM: AssistantReply plus provenance
+  end
+
+  VM->>Chat: persist assistant plus timing
+  VM-->>User: Responded in Xs and product links
+
+  Note over IAO: Invalid plan bootstraps summary and query · narration or guard fail uses facts-only fallback

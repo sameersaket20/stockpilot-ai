@@ -1,0 +1,58 @@
+%% StockPilot AI — keep in sync with README Architecture section
+flowchart TB
+  subgraph DEVICE["Android device · offline execution boundary"]
+    direction TB
+
+    subgraph PRESENTATION["Presentation"]
+      UI["Jetpack Compose<br/>Inventory · Assistant · Settings"]
+      VM["ViewModels<br/>InventoryViewModel · AssistantViewModel"]
+    end
+
+    subgraph ORCHESTRATION["Orchestration"]
+      AO["AssistantOrchestrator<br/>facade → respond"]
+      IAO["InventoryAgentOrchestrator<br/>plan · tools · narrate · validate"]
+    end
+
+    subgraph AI["On-device AI"]
+      GEMMA["GemmaInferenceEngine<br/>one gemma-4-E2B-it.litertlm<br/>LiteRT-LM GPU then CPU<br/>planner + narrator complete"]
+      WHISPER["WhisperSpeechEngine<br/>STT only · separate from Gemma"]
+    end
+
+    subgraph TRUSTED["Trusted business execution"]
+      TOOLS["InventoryToolRunner · AgentPlanParser<br/>query · summary · reorder · guardrails"]
+      REPO["InventoryRepository"]
+    end
+
+    subgraph PERSIST["Persistence and models"]
+      ROOM["Room · products · assistant_messages"]
+      CHAT["AssistantChatRepository"]
+      MODELS["ModelStorage · ModelImportManager"]
+    end
+  end
+
+  UI --> VM
+  VM --> REPO
+  VM -->|"user text"| AO
+  VM --> CHAT
+  CHAT --> ROOM
+  VM -.->|"voice"| WHISPER
+  WHISPER -.->|"transcript"| VM
+  AO --> IAO
+  IAO --> GEMMA
+  IAO --> TOOLS
+  TOOLS --> REPO
+  REPO --> ROOM
+  MODELS --> GEMMA
+  MODELS --> WHISPER
+
+  classDef presentation fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+  classDef ai fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+  classDef trusted fill:#ccfbf1,stroke:#0d9488,color:#134e4a
+  classDef persist fill:#fef3c7,stroke:#d97706,color:#92400e
+  classDef infra fill:#f3f4f6,stroke:#6b7280,color:#374151
+
+  class UI,VM presentation
+  class GEMMA,WHISPER ai
+  class TOOLS,REPO trusted
+  class ROOM,CHAT,MODELS persist
+  class AO,IAO infra
